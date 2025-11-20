@@ -98,15 +98,13 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
     setError('');
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('leads')
         .insert([{
           ...formData,
           status: 'new',
           payment_status: 'pending',
-        }])
-        .select()
-        .single();
+        }]);
 
       if (error) throw error;
 
