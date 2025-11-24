@@ -26,6 +26,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [serviceLoadError, setServiceLoadError] = useState('');
   const [formData, setFormData] = useState<FormData>({
     service_id: selectedService?.id || '',
     name: '',
@@ -44,6 +45,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
   }, [isOpen]);
 
   async function fetchServices() {
+    setServiceLoadError('');
     try {
       const { data, error } = await supabase
         .from('services')
@@ -56,7 +58,9 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
       if (selectedService) {
         setFormData(prev => ({ ...prev, service_id: selectedService.id }));
       }
-    } catch (err) {
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to load service packages. Please try again.';
+      setServiceLoadError(errorMessage);
       console.error('Error fetching services:', err);
     }
   }
@@ -173,45 +177,61 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                 <h3 className="text-xl font-semibold text-slate-900 mb-4">
                   Choose Your Package
                 </h3>
-                <div className="space-y-3">
-                  {services.map((service) => (
-                    <label
-                      key={service.id}
-                      className={`block p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        formData.service_id === service.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-slate-200 hover:border-blue-300'
-                      }`}
+                {serviceLoadError ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                    <p className="text-red-700 mb-4">{serviceLoadError}</p>
+                    <button
+                      onClick={fetchServices}
+                      className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
                     >
-                      <input
-                        type="radio"
-                        name="service"
-                        value={service.id}
-                        checked={formData.service_id === service.id}
-                        onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
-                        className="sr-only"
-                      />
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="font-semibold text-slate-900 text-lg">
-                            {service.name}
+                      Retry
+                    </button>
+                  </div>
+                ) : services.length === 0 ? (
+                  <div className="text-center py-8 text-slate-600">
+                    Loading service packages...
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {services.map((service) => (
+                      <label
+                        key={service.id}
+                        className={`block p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                          formData.service_id === service.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-slate-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="service"
+                          value={service.id}
+                          checked={formData.service_id === service.id}
+                          onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+                          className="sr-only"
+                        />
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-semibold text-slate-900 text-lg">
+                              {service.name}
+                            </div>
+                            <div className="text-slate-600 text-sm mt-1">
+                              {service.description}
+                            </div>
                           </div>
-                          <div className="text-slate-600 text-sm mt-1">
-                            {service.description}
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-blue-600">
+                              ${service.price}
+                            </div>
+                            {service.name === 'Enterprise' && (
+                              <div className="text-xs text-slate-600">/month</div>
+                            )}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
-                            ${service.price}
-                          </div>
-                          {service.name === 'Enterprise' && (
-                            <div className="text-xs text-slate-600">/month</div>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
