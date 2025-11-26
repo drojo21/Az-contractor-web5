@@ -89,10 +89,10 @@ export default function About() {
               View Our Packages
             </a>
             <a
-              href="tel:+15551234567"
+              href="tel:+15204613937"
               className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-8 py-3 rounded-lg font-semibold border border-white/20 hover:border-white/40 transition-all"
             >
-              Call (555) 123-4567
+              Call (520) 461-3937
             </a>
           </div>
         </div>
