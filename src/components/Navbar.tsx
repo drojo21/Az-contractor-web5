@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Hammer } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   onGetStarted: () => void;
@@ -21,9 +21,11 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-2 rounded-lg">
-              <Hammer className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/image.png"
+              alt="Az Contractor Pro"
+              className="h-10 w-auto"
+            />
             <span className="text-xl font-bold text-slate-900">
               Az Contractor Pro
             </span>

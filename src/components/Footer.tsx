@@ -1,4 +1,4 @@
-import { Hammer, Mail, Phone, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -7,9 +7,11 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-2 rounded-lg">
-                <Hammer className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src="/image.png"
+                alt="Az Contractor Pro"
+                className="h-8 w-auto"
+              />
               <span className="text-lg font-bold text-white">
                 Az Contractor Pro
               </span>
