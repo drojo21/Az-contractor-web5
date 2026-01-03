@@ -22,7 +22,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
             <img
-              src="/image.png"
+              src="/az_contractor_pro_logo_-_nature_and_technology.png"
               alt="Az Contractor Pro"
               className="h-10 w-auto"
             />
