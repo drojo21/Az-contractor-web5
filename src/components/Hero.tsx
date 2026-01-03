@@ -1,4 +1,4 @@
-import { ArrowRight, Globe, Smartphone } from 'lucide-react';
+import { ArrowRight, Globe, Star, CheckCircle2 } from 'lucide-react';
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -56,20 +56,44 @@ export default function Hero({ onGetStarted }: HeroProps) {
           </div>
 
           <div className="relative hidden lg:block">
-            <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-              <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg mb-4 flex items-center justify-center">
-                <Smartphone className="w-24 h-24 text-slate-400" />
+            <div className="relative z-10 space-y-6">
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform rotate-2 hover:rotate-0 transition-all duration-300">
+                <img
+                  src="https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg"
+                  alt="Construction worker"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <span className="text-slate-600 text-sm font-medium">5.0</span>
+                  </div>
+                  <p className="text-slate-700 text-sm italic">
+                    "Our new website brought in 10+ new leads in the first month!"
+                  </p>
+                  <p className="text-slate-900 font-semibold mt-2 text-sm">
+                    - Mike Johnson, Phoenix Builders
+                  </p>
+                </div>
               </div>
-              <div className="space-y-3">
-                <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <div className="h-20 bg-blue-100 rounded"></div>
-                  <div className="h-20 bg-cyan-100 rounded"></div>
+
+              <div className="flex gap-4">
+                <div className="flex-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-lg">
+                  <CheckCircle2 className="w-8 h-8 mb-2" />
+                  <p className="font-semibold">Mobile Optimized</p>
+                  <p className="text-xs text-blue-100 mt-1">Looks great on all devices</p>
+                </div>
+                <div className="flex-1 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl p-4 text-white shadow-lg">
+                  <CheckCircle2 className="w-8 h-8 mb-2" />
+                  <p className="font-semibold">SEO Ready</p>
+                  <p className="text-xs text-cyan-100 mt-1">Get found on Google</p>
                 </div>
               </div>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl transform translate-x-4 translate-y-4"></div>
           </div>
         </div>
       </div>
