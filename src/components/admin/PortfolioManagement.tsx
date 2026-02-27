@@ -5,8 +5,11 @@ import { supabase, Portfolio } from '../../lib/supabase';
 export default function PortfolioManagement() {
   const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [saveError, setSaveError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Portfolio>>({
     client_name: '',
     project_title: '',
@@ -32,8 +35,10 @@ export default function PortfolioManagement() {
 
       if (error) throw error;
       setPortfolio(data || []);
-    } catch (error) {
-      console.error('Error fetching portfolio:', error);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching portfolio:', err);
+      setError('Failed to load portfolio. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -41,6 +46,7 @@ export default function PortfolioManagement() {
 
   const startAdd = () => {
     setIsAdding(true);
+    setSaveError('');
     setEditForm({
       client_name: '',
       project_title: '',
@@ -57,11 +63,13 @@ export default function PortfolioManagement() {
   const startEdit = (item: Portfolio) => {
     setEditingId(item.id);
     setEditForm(item);
+    setSaveError('');
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setIsAdding(false);
+    setSaveError('');
     setEditForm({
       client_name: '',
       project_title: '',
@@ -93,22 +101,22 @@ export default function PortfolioManagement() {
 
       await fetchPortfolio();
       cancelEdit();
-    } catch (error) {
-      console.error('Error saving portfolio:', error);
-      alert('Error saving portfolio item');
+    } catch (err) {
+      console.error('Error saving portfolio:', err);
+      setSaveError('Failed to save portfolio item. Please try again.');
     }
   };
 
   const deletePortfolio = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this portfolio item?')) return;
-
     try {
       const { error } = await supabase.from('portfolio').delete().eq('id', id);
       if (error) throw error;
-      await fetchPortfolio();
-    } catch (error) {
-      console.error('Error deleting portfolio:', error);
-      alert('Error deleting portfolio item');
+      setPortfolio(prev => prev.filter(p => p.id !== id));
+      setDeleteConfirmId(null);
+    } catch (err) {
+      console.error('Error deleting portfolio:', err);
+      setError('Failed to delete portfolio item. Please try again.');
+      setDeleteConfirmId(null);
     }
   };
 
@@ -123,9 +131,12 @@ export default function PortfolioManagement() {
         .eq('id', id);
 
       if (error) throw error;
-      await fetchPortfolio();
-    } catch (error) {
-      console.error('Error toggling featured:', error);
+      setPortfolio(prev =>
+        prev.map(p => p.id === id ? { ...p, is_featured: !currentStatus } : p)
+      );
+    } catch (err) {
+      console.error('Error toggling featured:', err);
+      setError('Failed to update portfolio item. Please try again.');
     }
   };
 
@@ -138,6 +149,12 @@ export default function PortfolioManagement() {
       <h3 className="text-lg font-semibold text-slate-900">
         {isAdding ? 'Add New Portfolio Item' : 'Edit Portfolio Item'}
       </h3>
+
+      {saveError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {saveError}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
@@ -262,7 +279,7 @@ export default function PortfolioManagement() {
             try {
               const parsed = JSON.parse(e.target.value);
               setEditForm({ ...editForm, results: parsed });
-            } catch (err) {
+            } catch {
               // Invalid JSON, don't update
             }
           }}
@@ -326,6 +343,12 @@ export default function PortfolioManagement() {
         )}
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       {(isAdding || editingId) && renderForm()}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -339,6 +362,7 @@ export default function PortfolioManagement() {
                 src={item.image_url}
                 alt={item.project_title}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute top-2 right-2 flex gap-2">
                 <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold">
@@ -379,32 +403,50 @@ export default function PortfolioManagement() {
                 </a>
               )}
 
-              <div className="flex gap-2 pt-3 border-t border-slate-200">
-                <button
-                  onClick={() => startEdit(item)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-colors"
-                >
-                  <Edit2 className="w-3 h-3" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => toggleFeatured(item.id, item.is_featured)}
-                  className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                    item.is_featured
-                      ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                      : 'bg-green-100 hover:bg-green-200 text-green-700'
-                  }`}
-                >
-                  {item.is_featured ? 'Hide' : 'Feature'}
-                </button>
-                <button
-                  onClick={() => deletePortfolio(item.id)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-medium transition-colors ml-auto"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  Delete
-                </button>
-              </div>
+              {deleteConfirmId === item.id ? (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                  <span className="text-xs text-red-700 flex-1">Delete this item?</span>
+                  <button
+                    onClick={() => deletePortfolio(item.id)}
+                    className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirmId(null)}
+                    className="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2 pt-3 border-t border-slate-200">
+                  <button
+                    onClick={() => startEdit(item)}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-colors"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => toggleFeatured(item.id, item.is_featured)}
+                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                      item.is_featured
+                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        : 'bg-green-100 hover:bg-green-200 text-green-700'
+                    }`}
+                  >
+                    {item.is_featured ? 'Hide' : 'Feature'}
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirmId(item.id)}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-medium transition-colors ml-auto"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}

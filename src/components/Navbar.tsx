@@ -67,6 +67,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>

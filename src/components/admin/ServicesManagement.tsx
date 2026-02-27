@@ -5,6 +5,8 @@ import { supabase, Service } from '../../lib/supabase';
 export default function ServicesManagement() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [saveError, setSaveError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Service>>({});
 
@@ -21,8 +23,10 @@ export default function ServicesManagement() {
 
       if (error) throw error;
       setServices(data || []);
-    } catch (error) {
-      console.error('Error fetching services:', error);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      setError('Failed to load services. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -31,11 +35,13 @@ export default function ServicesManagement() {
   const startEdit = (service: Service) => {
     setEditingId(service.id);
     setEditForm(service);
+    setSaveError('');
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditForm({});
+    setSaveError('');
   };
 
   const saveEdit = async () => {
@@ -57,9 +63,9 @@ export default function ServicesManagement() {
       if (error) throw error;
       await fetchServices();
       cancelEdit();
-    } catch (error) {
-      console.error('Error updating service:', error);
-      alert('Error updating service');
+    } catch (err) {
+      console.error('Error updating service:', err);
+      setSaveError('Failed to save changes. Please try again.');
     }
   };
 
@@ -74,9 +80,12 @@ export default function ServicesManagement() {
         .eq('id', id);
 
       if (error) throw error;
-      await fetchServices();
-    } catch (error) {
-      console.error('Error toggling service:', error);
+      setServices(prev =>
+        prev.map(s => s.id === id ? { ...s, is_active: !currentStatus } : s)
+      );
+    } catch (err) {
+      console.error('Error toggling service:', err);
+      setError('Failed to update service status. Please try again.');
     }
   };
 
@@ -111,6 +120,12 @@ export default function ServicesManagement() {
         </h2>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-4">
         {services.map((service) => (
           <div
@@ -119,6 +134,12 @@ export default function ServicesManagement() {
           >
             {editingId === service.id ? (
               <div className="space-y-4">
+                {saveError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {saveError}
+                  </div>
+                )}
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -191,6 +212,7 @@ export default function ServicesManagement() {
                         <button
                           onClick={() => removeFeature(index)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          aria-label="Remove feature"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -258,7 +280,7 @@ export default function ServicesManagement() {
                     <div className="text-3xl font-bold text-slate-900">
                       ${service.price}
                     </div>
-                    {service.name === 'Enterprise' && (
+                    {service.sort_order === 3 && (
                       <div className="text-sm text-slate-600">/month</div>
                     )}
                   </div>

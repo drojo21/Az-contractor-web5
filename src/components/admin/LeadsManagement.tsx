@@ -6,6 +6,7 @@ export default function LeadsManagement() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState<string>('all');
 
   useEffect(() => {
@@ -27,8 +28,10 @@ export default function LeadsManagement() {
 
       setLeads(leadsResult.data || []);
       setServices(servicesResult.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load leads. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -80,6 +83,12 @@ export default function LeadsManagement() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-900">
           Leads ({filteredLeads.length})

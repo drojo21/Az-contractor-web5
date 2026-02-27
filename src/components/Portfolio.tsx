@@ -5,6 +5,7 @@ import { supabase, Portfolio as PortfolioType } from '../lib/supabase';
 export default function Portfolio() {
   const [portfolio, setPortfolio] = useState<PortfolioType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchPortfolio();
@@ -14,14 +15,16 @@ export default function Portfolio() {
     try {
       const { data, error } = await supabase
         .from('portfolio')
-        .select('*')
+        .select('id, image_url, project_title, service_type, industry, client_name, description, results, website_url')
         .eq('is_featured', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setPortfolio(data || []);
-    } catch (error) {
-      console.error('Error fetching portfolio:', error);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching portfolio:', err);
+      setError('Failed to load portfolio.');
     } finally {
       setLoading(false);
     }
@@ -32,6 +35,16 @@ export default function Portfolio() {
       <section id="portfolio" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">Loading portfolio...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="portfolio" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-red-600">{error}</div>
         </div>
       </section>
     );
@@ -61,6 +74,7 @@ export default function Portfolio() {
                   src={item.image_url}
                   alt={item.project_title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
                 />
                 <div className="absolute top-4 right-4">
                   <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">

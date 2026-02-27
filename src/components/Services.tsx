@@ -6,9 +6,17 @@ interface ServicesProps {
   onSelectService: (service: Service) => void;
 }
 
+const ICONS = [Globe, Share2, TrendingUp];
+const COLORS = [
+  'from-blue-500 to-blue-600',
+  'from-cyan-500 to-blue-500',
+  'from-orange-500 to-cyan-500',
+];
+
 export default function Services({ onSelectService }: ServicesProps) {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchServices();
@@ -18,50 +26,36 @@ export default function Services({ onSelectService }: ServicesProps) {
     try {
       const { data, error } = await supabase
         .from('services')
-        .select('*')
+        .select('id, name, description, price, features, is_active, sort_order')
         .eq('is_active', true)
         .order('sort_order');
 
       if (error) throw error;
       setServices(data || []);
-    } catch (error) {
-      console.error('Error fetching services:', error);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      setError('Failed to load services. Please refresh the page.');
     } finally {
       setLoading(false);
     }
   }
-
-  const getIcon = (name: string) => {
-    switch (name) {
-      case 'Basic':
-        return Globe;
-      case 'Pro':
-        return Share2;
-      case 'Enterprise':
-        return TrendingUp;
-      default:
-        return Globe;
-    }
-  };
-
-  const getColor = (name: string) => {
-    switch (name) {
-      case 'Basic':
-        return 'from-blue-500 to-blue-600';
-      case 'Pro':
-        return 'from-cyan-500 to-blue-500';
-      case 'Enterprise':
-        return 'from-orange-500 to-cyan-500';
-      default:
-        return 'from-blue-500 to-cyan-500';
-    }
-  };
 
   if (loading) {
     return (
       <section id="services" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">Loading services...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="services" className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-red-600">{error}</div>
         </div>
       </section>
     );
@@ -82,9 +76,10 @@ export default function Services({ onSelectService }: ServicesProps) {
 
         <div className="grid md:grid-cols-3 gap-8">
           {services.map((service, index) => {
-            const Icon = getIcon(service.name);
-            const colorClass = getColor(service.name);
-            const isPopular = service.name === 'Pro';
+            const Icon = ICONS[index] ?? Globe;
+            const colorClass = COLORS[index] ?? 'from-blue-500 to-cyan-500';
+            const isPopular = index === 1;
+            const isRecurring = index === services.length - 1 && services.length > 1;
 
             return (
               <div
@@ -119,11 +114,11 @@ export default function Services({ onSelectService }: ServicesProps) {
                       <span className="text-5xl font-bold text-slate-900">
                         ${service.price}
                       </span>
-                      {service.name === 'Enterprise' && (
+                      {isRecurring && (
                         <span className="text-slate-600">/month</span>
                       )}
                     </div>
-                    {service.name !== 'Enterprise' && (
+                    {!isRecurring && (
                       <p className="text-sm text-slate-600 mt-1">One-time payment</p>
                     )}
                   </div>

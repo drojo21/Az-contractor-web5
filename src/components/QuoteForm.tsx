@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, ArrowRight, ArrowLeft, Check, CreditCard } from 'lucide-react';
 import { supabase, Service } from '../lib/supabase';
 
@@ -21,11 +21,15 @@ interface FormData {
   message: string;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^[\d\s\-().+]{7,}$/;
+
 export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFormProps) {
   const [step, setStep] = useState<FormStep>('service');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     service_id: selectedService?.id || '',
     name: '',
@@ -37,29 +41,26 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
     message: '',
   });
 
-  useEffect(() => {
-    if (isOpen && services.length === 0) {
-      fetchServices();
-    }
-  }, [isOpen]);
-
-  async function fetchServices() {
+  const fetchServices = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('services')
-        .select('*')
+        .select('id, name, description, price, features, is_active, sort_order')
         .eq('is_active', true)
         .order('sort_order');
 
       if (error) throw error;
       setServices(data || []);
-      if (selectedService) {
-        setFormData(prev => ({ ...prev, service_id: selectedService.id }));
-      }
     } catch (err) {
       console.error('Error fetching services:', err);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && services.length === 0) {
+      fetchServices();
+    }
+  }, [isOpen, services.length, fetchServices]);
 
   const selectedServiceData = services.find(s => s.id === formData.service_id) || selectedService;
 
@@ -68,13 +69,29 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
       setError('Please select a service package');
       return;
     }
-    if (step === 'info' && (!formData.name || !formData.email || !formData.phone)) {
-      setError('Please fill in all required fields');
-      return;
+    if (step === 'info') {
+      if (!formData.name || !formData.email || !formData.phone) {
+        setError('Please fill in all required fields');
+        return;
+      }
+      if (!EMAIL_RE.test(formData.email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+      if (!PHONE_RE.test(formData.phone)) {
+        setError('Please enter a valid phone number');
+        return;
+      }
     }
-    if (step === 'details' && !formData.company_name) {
-      setError('Please enter your company name');
-      return;
+    if (step === 'details') {
+      if (!formData.company_name) {
+        setError('Please enter your company name');
+        return;
+      }
+      if (!formData.business_type) {
+        setError('Please select your type of contracting business');
+        return;
+      }
     }
 
     setError('');
@@ -108,7 +125,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
 
       if (error) throw error;
 
-      onClose();
+      setSubmitted(true);
       setFormData({
         service_id: '',
         name: '',
@@ -120,16 +137,36 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
         message: '',
       });
       setStep('service');
-
-      alert('Thank you! We will contact you shortly to process your payment and get started on your project.');
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   if (!isOpen) return null;
+
+  if (submitted) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Request Submitted!</h2>
+          <p className="text-slate-600 mb-6">
+            Thank you! We will contact you shortly to process your payment and get started on your project.
+          </p>
+          <button
+            onClick={() => { setSubmitted(false); onClose(); }}
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const progress = {
     service: 25,
@@ -146,6 +183,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Close quote form"
           >
             <X className="w-5 h-5" />
           </button>
@@ -204,7 +242,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                           <div className="text-2xl font-bold text-blue-600">
                             ${service.price}
                           </div>
-                          {service.name === 'Enterprise' && (
+                          {service.sort_order === 3 && (
                             <div className="text-xs text-slate-600">/month</div>
                           )}
                         </div>
@@ -232,6 +270,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="John Smith"
+                  autoComplete="name"
                 />
               </div>
 
@@ -245,6 +284,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="john@example.com"
+                  autoComplete="email"
                 />
               </div>
 
@@ -258,6 +298,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="(555) 123-4567"
+                  autoComplete="tel"
                 />
               </div>
             </div>
@@ -279,12 +320,13 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                   onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Smith Plumbing Services"
+                  autoComplete="organization"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Type of Contracting Business
+                  Type of Contracting Business *
                 </label>
                 <select
                   value={formData.business_type}
@@ -313,6 +355,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                   onChange={(e) => setFormData({ ...formData, current_website: e.target.value })}
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="https://yourwebsite.com"
+                  autoComplete="url"
                 />
               </div>
 
@@ -368,7 +411,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
                     <span className="text-slate-900 font-semibold text-lg">Total:</span>
                     <span className="text-3xl font-bold text-blue-600">
                       ${selectedServiceData?.price}
-                      {selectedServiceData?.name === 'Enterprise' && (
+                      {selectedServiceData?.sort_order === 3 && (
                         <span className="text-lg text-slate-600">/mo</span>
                       )}
                     </span>

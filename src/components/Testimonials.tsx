@@ -5,6 +5,7 @@ import { supabase, Testimonial } from '../lib/supabase';
 export default function Testimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchTestimonials();
@@ -14,14 +15,16 @@ export default function Testimonials() {
     try {
       const { data, error } = await supabase
         .from('testimonials')
-        .select('*')
+        .select('id, client_name, client_company, client_role, testimonial_text, rating, is_featured')
         .eq('is_featured', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setTestimonials(data || []);
-    } catch (error) {
-      console.error('Error fetching testimonials:', error);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching testimonials:', err);
+      setError('Failed to load testimonials.');
     } finally {
       setLoading(false);
     }
@@ -32,6 +35,16 @@ export default function Testimonials() {
       <section id="testimonials" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">Loading testimonials...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="testimonials" className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-red-600">{error}</div>
         </div>
       </section>
     );
