@@ -75,9 +75,9 @@ export default function Hero({ onGetStarted }: HeroProps) {
             <div className="relative z-10 space-y-6">
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform rotate-2 hover:rotate-0 transition-all duration-300">
                 <img
-                  src="https://images.pexels.com/photos/1486222/pexels-photo-1486222.jpeg"
-                  alt="Phoenix Arizona skyline"
-                  className="w-full h-64 object-cover"
+                  src="/creativeconstructionaz-screenshot.jpg"
+                  alt="Creative Construction AZ website"
+                  className="w-full h-64 object-cover object-top"
                 />
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-2">
