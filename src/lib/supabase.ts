@@ -59,6 +59,7 @@ export interface Portfolio {
   industry: string;
   service_type: string;
   image_url: string;
+  before_image_url?: string;
   website_url: string;
   results: Record<string, string>;
   is_featured: boolean;

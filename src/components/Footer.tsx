@@ -44,6 +44,11 @@ export default function Footer() {
                   About Us
                 </a>
               </li>
+              <li>
+                <a href="#faq" className="hover:text-blue-400 transition-colors">
+                  FAQ
+                </a>
+              </li>
             </ul>
           </div>
 

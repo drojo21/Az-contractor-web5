@@ -84,9 +84,16 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
       setError('Please select a service package');
       return;
     }
-    if (step === 'info' && (!formData.name || !formData.email || !formData.phone)) {
-      setError('Please fill in all required fields');
-      return;
+    if (step === 'info') {
+      if (!formData.name || !formData.email || !formData.phone) {
+        setError('Please fill in all required fields');
+        return;
+      }
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+      if (!emailOk) {
+        setError('Please enter a valid email address');
+        return;
+      }
     }
     if (step === 'details' && !formData.company_name) {
       setError('Please enter your company name');
