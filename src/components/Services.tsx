@@ -157,8 +157,9 @@ export default function Services({ onSelectService }: ServicesProps) {
             Not sure which package is right for you?
           </p>
           <button
-            onClick={() => onSelectService(services[0])}
-            className="text-blue-600 hover:text-blue-700 font-semibold"
+            onClick={() => services.length > 0 && onSelectService(services[0])}
+            disabled={services.length === 0}
+            className="text-blue-600 hover:text-blue-700 font-semibold disabled:opacity-50"
           >
             Schedule a free consultation →
           </button>

@@ -6,6 +6,7 @@ import Services from './components/Services';
 import Testimonials from './components/Testimonials';
 import About from './components/About';
 import Footer from './components/Footer';
+import Portfolio from './components/Portfolio';
 import QuoteForm from './components/QuoteForm';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
@@ -52,6 +53,7 @@ function AppContent() {
       <main className="pt-16">
         <Hero onGetStarted={() => handleGetStarted()} />
         <Services onSelectService={handleGetStarted} />
+        <Portfolio />
         <Testimonials />
         <About />
       </main>
