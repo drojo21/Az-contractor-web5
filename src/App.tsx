@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import HowItWorks from './components/HowItWorks';
 import Services from './components/Services';
+import Portfolio from './components/Portfolio';
 import Testimonials from './components/Testimonials';
 import About from './components/About';
+import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import FloatingCTA from './components/FloatingCTA';
 import QuoteForm from './components/QuoteForm';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
@@ -49,13 +53,17 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar onGetStarted={() => handleGetStarted()} />
-      <main className="pt-16">
+      <main className="pt-16 pb-16 md:pb-0">
         <Hero onGetStarted={() => handleGetStarted()} />
+        <HowItWorks />
         <Services onSelectService={handleGetStarted} />
+        <Portfolio />
         <Testimonials />
         <About />
+        <FAQ />
       </main>
       <Footer />
+      <FloatingCTA onGetStarted={() => handleGetStarted()} />
 
       <QuoteForm
         isOpen={showQuoteForm}

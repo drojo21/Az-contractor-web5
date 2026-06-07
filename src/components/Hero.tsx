@@ -1,4 +1,4 @@
-import { ArrowRight, Globe, Star, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Globe, Star, CheckCircle2, Phone } from 'lucide-react';
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -37,9 +37,16 @@ export default function Hero({ onGetStarted }: HeroProps) {
                 Get Started Now
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
+              <a
+                href="tel:+15204613937"
+                className="flex items-center justify-center gap-2 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all"
+              >
+                <Phone className="w-5 h-5" />
+                (520) 461-3937
+              </a>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-white/10">
               <div>
                 <div className="text-3xl font-bold text-blue-400">50+</div>
                 <div className="text-sm text-slate-400">Happy Contractors</div>
@@ -52,6 +59,15 @@ export default function Hero({ onGetStarted }: HeroProps) {
                 <div className="text-3xl font-bold text-blue-400">2 Weeks</div>
                 <div className="text-sm text-slate-400">Average Launch</div>
               </div>
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <div className="text-sm font-bold text-white">4.9 / 5.0</div>
+                <div className="text-xs text-slate-400">Google Reviews</div>
+              </div>
             </div>
           </div>
 
@@ -59,9 +75,9 @@ export default function Hero({ onGetStarted }: HeroProps) {
             <div className="relative z-10 space-y-6">
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform rotate-2 hover:rotate-0 transition-all duration-300">
                 <img
-                  src="https://images.pexels.com/photos/1486222/pexels-photo-1486222.jpeg"
-                  alt="Phoenix Arizona skyline"
-                  className="w-full h-64 object-cover"
+                  src="/creativeconstructionaz-screenshot.jpg"
+                  alt="Creative Construction AZ website"
+                  className="w-full h-64 object-cover object-top"
                 />
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-2">

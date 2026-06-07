@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, ArrowRight, ArrowLeft, Check, CreditCard } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Check, CreditCard, CheckCircle2 } from 'lucide-react';
 import { supabase, Service } from '../lib/supabase';
 
 interface QuoteFormProps {
@@ -25,6 +25,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
   const [step, setStep] = useState<FormStep>('service');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<FormData>({
     service_id: selectedService?.id || '',
@@ -38,10 +39,25 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
   });
 
   useEffect(() => {
-    if (isOpen && services.length === 0) {
-      fetchServices();
+    if (isOpen) {
+      setStep('service');
+      setSubmitted(false);
+      setError('');
+      setFormData({
+        service_id: selectedService?.id || '',
+        name: '',
+        email: '',
+        phone: '',
+        company_name: '',
+        business_type: '',
+        current_website: '',
+        message: '',
+      });
+      if (services.length === 0) {
+        fetchServices();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, selectedService?.id]);
 
   async function fetchServices() {
     try {
@@ -68,9 +84,16 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
       setError('Please select a service package');
       return;
     }
-    if (step === 'info' && (!formData.name || !formData.email || !formData.phone)) {
-      setError('Please fill in all required fields');
-      return;
+    if (step === 'info') {
+      if (!formData.name || !formData.email || !formData.phone) {
+        setError('Please fill in all required fields');
+        return;
+      }
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+      if (!emailOk) {
+        setError('Please enter a valid email address');
+        return;
+      }
     }
     if (step === 'details' && !formData.company_name) {
       setError('Please enter your company name');
@@ -108,20 +131,7 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
 
       if (error) throw error;
 
-      onClose();
-      setFormData({
-        service_id: '',
-        name: '',
-        email: '',
-        phone: '',
-        company_name: '',
-        business_type: '',
-        current_website: '',
-        message: '',
-      });
-      setStep('service');
-
-      alert('Thank you! We will contact you shortly to process your payment and get started on your project.');
+      setSubmitted(true);
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -130,6 +140,28 @@ export default function QuoteForm({ isOpen, onClose, selectedService }: QuoteFor
   };
 
   if (!isOpen) return null;
+
+  if (submitted) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-10 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-12 h-12 text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">Request Submitted!</h2>
+          <p className="text-slate-600 mb-8">
+            Thank you! We'll reach out within 1 business day with a secure payment link and next steps to get your project started.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-3 px-6 rounded-lg font-semibold transition-all"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const progress = {
     service: 25,
